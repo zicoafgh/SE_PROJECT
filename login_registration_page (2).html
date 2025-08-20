@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digital Library Authentication</title>
+<style>
+/* === CSS Variables === */
+:root {
+  --primary-color: #5cb3a8;
+  --primary-dark: #4a9083;
+  --secondary-color: #d4a74a;
+  --text-color: #333;
+  --bg-color: #f5f7fa;
+  --card-bg: #ffffff;
+  --error-color: #c53030;
+  --success-color: #2f855a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+/* === Base Styles === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* === Animated Background === */
+.bg-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(92, 179, 168, 0.1);
+  animation: float 15s infinite ease-in-out;
+}
+
+.particle:nth-child(1) {
+  width: 80px;
+  height: 80px;
+  top: 10%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  width: 60px;
+  height: 60px;
+  top: 70%;
+  left: 80%;
+  animation-delay: 2s;
+}
+
+.particle:nth-child(3) {
+  width: 40px;
+  height: 40px;
+  top: 30%;
+  left: 70%;
+  animation-delay: 4s;
+}
+
+.particle:nth-child(4) {
+  width: 100px;
+  height: 100px;
+  top: 50%;
+  left: 10%;
+  animation-delay: 1s;
+}
+
+.particle:nth-child(5) {
+  width: 50px;
+  height: 50px;
+  top: 80%;
+  left: 50%;
+  animation-delay: 3s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translateY(-100px) translateX(50px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(-200px) translateX(-50px) rotate(180deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-300px) translateX(100px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(-400px) translateX(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* === Card Container === */
+.auth-container {
+  width: 100%;
+  max-width: 450px;
+  padding: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* === Toggle Buttons === */
+.toggle-buttons {
+  display: flex;
+  position: relative;
+  background: var(--primary-color);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 18px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  z-index: 2;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-btn.active {
+  color: var(--primary-dark);
+}
+
+.toggle-slider {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  background: white;
+  border-radius: 10px 10px 0 0;
+  transition: transform 0.3s ease;
+  transform: translateX(0);
+  z-index: 1;
+}
+
+.toggle-slider.register {
+  transform: translateX(100%);
+}
+
+/* === Card Header === */
+.card-header {
+  text-align: center;
+  padding: 30px 20px 20px;
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+h2 {
+  color: var(--primary-dark);
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 16px;
+}
+
+/* === Form Styles === */
+.form-panel {
+  padding: 0 30px 30px;
+  transition: opacity 0.3s ease;
+}
+
+.form-panel.hidden {
+  display: none;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e1e5eb;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(92, 179, 168, 0.3);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.checkbox-group input {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+.checkbox-group label {
+  font-size: 15px;
+  color: #555;
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(92, 179, 168, 0.4);
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* === Ripple Animation === */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* === Login Form Specific === */
+.forgot-password {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.forgot-password p {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.forgot-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.forgot-btn:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* === Registration Form Specific === */
+.field-error {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  color: var(--error-color);
+  min-height: 20px;
+}
+
+.confirmation {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.confirmation span::before {
+  content: "✓ ";
+  color: var(--success-color);
+}
+
+/* === Responsive Design === */
+@media (max-width: 600px) {
+  .auth-container {
+    padding: 10px;
+  }
+  
+  .card {
+    border-radius: 10px;
+  }
+  
+  .card-header {
+    padding: 20px 15px 15px;
+  }
+  
+  .form-panel {
+    padding: 0 20px 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .toggle-btn {
+    padding: 15px;
+    font-size: 16px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+  }
+  
+  .form-input,
+  .form-select,
+  .btn {
+    padding: 12px;
+    font-size: 15px;
+  }
+}
+</style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+  </div>
+
+  <div class="auth-container">
+    <div class="card">
+      <!-- Toggle Buttons -->
+      <div class="toggle-buttons">
+        <div class="toggle-slider" id="toggleSlider"></div>
+        <button class="toggle-btn active" id="loginToggle" type="button">Login</button>
+        <button class="toggle-btn" id="registerToggle" type="button">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div class="form-panel" id="loginPanel">
+        <div class="card-header">
+          <div class="icon" id="loginIcon">📚</div>
+          <h2 id="loginTitle">Library Login</h2>
+          <p class="subtitle" id="loginSubtitle">Member Access Portal</p>
+        </div>
+        <form class="login-form" id="loginForm" novalidate>
+          <div class="form-group">
+            <input id="loginId" name="loginId" type="text" class="form-input"
+                   placeholder="Library Card Number or Username" required autocomplete="username"/>
+          </div>
+          <div class="form-group">
+            <input id="loginPassword" name="password" type="password" class="form-input"
+                   placeholder="Password" required autocomplete="current-password"/>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember">Remember me on this device</label>
+          </div>
+          <button type="submit" class="btn">Access Library</button>
+        </form>
+        <div class="forgot-password">
+          <p>Need help accessing your account?</p>
+          <button type="button" class="forgot-btn">Forgot Password?</button>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <div class="form-panel hidden" id="registerPanel" aria-labelledby="registerTitle">
+        <div class="card-header">
+          <div class="icon" id="registerIcon">📝</div>
+          <h2 id="registerTitle">Library Registration</h2>
+          <p class="subtitle" id="registerSubtitle">Join Our Digital Library</p>
+        </div>
+
+        <!-- Live region for error/success messages -->
+        <div id="regAlert" role="alert" aria-live="polite" style="min-height:24px;margin-bottom:8px;color:#c53030;font-weight:600;"></div>
+
+        <form class="registration-form" id="registrationForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <input id="firstName" name="firstName" type="text" class="form-input"
+                     placeholder="First Name" required autocomplete="given-name" />
+              <small class="field-error" data-for="firstName" style="color:#c53030;"></small>
+            </div>
+            <div class="form-group">
+              <input id="lastName" name="lastName" type="text" class="form-input"
+                     placeholder="Last Name" required autocomplete="family-name" />
+              <small class="field-error" data-for="lastName" style="color:#c53030;"></small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <input id="email" name="email" type="email" class="form-input"
+                   placeholder="Email Address" required autocomplete="email" />
+            <small class="field-error" data-for="email" style="color:#c53030;"></small>
+          </div>
+
+          <div class="form-group">
+            <input id="phone" name="phone" type="tel" class="form-input"
+                   placeholder="Phone Number" autocomplete="tel"
+                   pattern="^[0-9+()\-.\\s]{7,}$" />
+            <small class="field-error" data-for="phone" style="color:#c53030;"></small>
+          </div>
+
+          <div class="form-group">
+            <select id="membership" name="membership" class="form-select" required>
+              <option value="">Select Membership Type</option>
+              <option value="student">Student (Free)</option>
+              <option value="faculty">Faculty/Staff</option>
+              <option value="community">Community Member</option>
+              <option value="researcher">Researcher</option>
+            </select>
+            <small class="field-error" data-for="membership" style="color:#c53030;"></small>
+          </div>
+
+          <div class="form-group">
+            <input id="password" name="password" type="password" class="form-input"
+                   placeholder="Create Password" required autocomplete="new-password"
+                   minlength="8" />
+            <small class="field-error" data-for="password" style="color:#c53030;"></small>
+          </div>
+
+          <div class="form-group">
+            <input id="confirmPassword" name="confirmPassword" type="password" class="form-input"
+                   placeholder="Confirm Password" required autocomplete="new-password" />
+            <small class="field-error" data-for="confirmPassword" style="color:#c53030;"></small>
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="terms" name="terms" required>
+            <label for="terms">I agree to the Library Terms of Service</label>
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="newsletter" name="newsletter">
+            <label for="newsletter">Subscribe to library newsletter</label>
+          </div>
+
+          <button id="registerBtn" type="submit" class="btn">Create Library Account</button>
+        </form>
+
+        <div class="confirmation">
+          <span>Account verification via email</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle logic
+  const loginToggle = document.getElementById('loginToggle');
+  const registerToggle = document.getElementById('registerToggle');
+  const toggleSlider = document.getElementById('toggleSlider');
+  const loginPanel = document.getElementById('loginPanel');
+  const registerPanel = document.getElementById('registerPanel');
+
+  function animateFormElements(panel) {
+    const elements = panel.querySelectorAll('.form-group, .checkbox-group, .btn, .forgot-password, .confirmation, [role="alert"]');
+    elements.forEach((el, idx) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        el.style.transition = 'all 0.6s ease-out';
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, idx * 80 + 120);
+    });
+  }
+
+  function switchToLogin() {
+    loginToggle.classList.add('active');
+    registerToggle.classList.remove('active');
+    toggleSlider.classList.remove('register');
+    loginPanel.classList.remove('hidden');
+    registerPanel.classList.add('hidden');
+  }
+
+  function switchToRegister() {
+    registerToggle.classList.add('active');
+    loginToggle.classList.remove('active');
+    toggleSlider.classList.add('register');
+    loginPanel.classList.add('hidden');
+    registerPanel.classList.remove('hidden');
+    animateFormElements(registerPanel);
+  }
+
+  loginToggle.addEventListener('click', switchToLogin);
+  registerToggle.addEventListener('click', switchToRegister);
+
+  // Pretty focus glow
+  const inputs = document.querySelectorAll('.form-input, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.style.transform = 'translateY(-3px) scale(1.02)';
+      this.style.boxShadow = '0 10px 25px rgba(92, 179, 168, 0.3)';
+    });
+    input.addEventListener('blur', function() {
+      this.style.transform = 'translateY(0) scale(1)';
+      this.style.boxShadow = 'none';
+    });
+  });
+
+  // Registration: validation + submit
+  const REGISTER_ENDPOINT = '/api/register'; // <- change to your backend route
+  const regForm = document.getElementById('registrationForm');
+  const regAlert = document.getElementById('regAlert');
+  const registerBtn = document.getElementById('registerBtn');
+
+  // Inline helper to show per-field errors
+  function setFieldError(id, msg) {
+    const small = regForm.querySelector(`.field-error[data-for="${id}"]`);
+    if (small) { small.textContent = msg || ''; }
+  }
+
+  function clearAllErrors() {
+    regAlert.textContent = '';
+    regForm.querySelectorAll('.field-error').forEach(s => s.textContent = '');
+  }
+
+  // Custom validity: confirm password matches
+  const pwd = document.getElementById('password');
+  const confirmPwd = document.getElementById('confirmPassword');
+  function syncPasswordValidity() {
+    if (confirmPwd.value && pwd.value !== confirmPwd.value) {
+      confirmPwd.setCustomValidity('Passwords do not match');
+    } else {
+      confirmPwd.setCustomValidity('');
+    }
+  }
+  pwd.addEventListener('input', syncPasswordValidity);
+  confirmPwd.addEventListener('input', syncPasswordValidity);
+
+  regForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearAllErrors();
+
+    // Let the browser check constraints first (Constraint Validation API)
+    // If invalid, the browser will show tooltips; we also mirror messages inline.
+    if (!regForm.checkValidity()) {
+      [...regForm.elements].forEach(el => {
+        if (el.willValidate && !el.checkValidity()) {
+          setFieldError(el.id, el.validationMessage);
+        }
+      });
+      regAlert.textContent = 'Please fix the highlighted fields.';
+      return;
+    }
+
+    // Extra client-side checks (lightweight; enforce real rules server-side)
+    if (pwd.value.length < 8) {
+      setFieldError('password', 'Use at least 8 characters.');
+      regAlert.textContent = 'Password is too short.';
+      return;
+    }
+
+    // Build payload
+    const payload = {
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName: document.getElementById('lastName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim() || null,
+      membership: document.getElementById('membership').value,
+      password: pwd.value,
+      newsletter: document.getElementById('newsletter').checked
+    };
+
+    // UI: disable while submitting
+    registerBtn.disabled = true;
+    registerBtn.textContent = 'CREATING...';
+
+    try {
+      const res = await fetch(REGISTER_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include' // if your API sets cookies/session
+      });
+
+      // Attempt to parse JSON result
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Expecting { errors: { field: "message", ... } } or { message }
+        if (data && data.errors && typeof data.errors === 'object') {
+          Object.entries(data.errors).forEach(([field, message]) => {
+            setFieldError(field, String(message));
+          });
+        }
+        regAlert.textContent = data.message || 'Registration failed. Please check your details.';
+        return;
+      }
+
+      // Success!
+      regAlert.style.color = '#2f855a';
+      regAlert.textContent = data.message || 'Account created! Check your email to verify.';
+      regForm.reset();
+      // Optional: auto-switch to login after a short delay
+      setTimeout(switchToLogin, 1200);
+    } catch (err) {
+      regAlert.textContent = 'Network error. Please try again.';
+    } finally {
+      registerBtn.disabled = false;
+      registerBtn.textContent = 'Create Library Account';
+      regAlert.style.color = '#c53030'; // reset to error color for next time
+    }
+  });
+
+  // Ripple + button micro-interaction
+  document.querySelectorAll('.btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      // Allow form submit if it's the registration button; we just add the ripple effect.
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      const ripple = document.createElement('span');
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.style.position = 'absolute';
+      ripple.style.borderRadius = '50%';
+      ripple.style.background = 'rgba(255,255,255,0.6)';
+      ripple.style.transform = 'scale(0)';
+      ripple.style.animation = 'ripple 0.8s linear';
+      ripple.style.pointerEvents = 'none';
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 800);
+    });
+  });
+
+  // Background floating symbols
+  setInterval(() => {
+    const symbols = ['📖', '📚', '✏️', '🔍', '💡'];
+    const el = document.createElement('div');
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.position = 'absolute';
+    el.style.fontSize = Math.random() * 20 + 15 + 'px';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.bottom = '-50px';
+    el.style.animation = 'float 10s linear forwards';
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.7';
+    document.querySelector('.bg-animation').appendChild(el);
+    setTimeout(() => el.remove(), 10000);
+  }, 4000);
+});
+</script>
+</body>
+</html>
